@@ -136,7 +136,7 @@ For manage project conveniently, you can also link dependencies root to project 
    66 |                   << std::accumulate(this->time_info_.begin(), this->time_info_.end(), 0);
    |                           ^~~~~~~~~~
    ...`, 
-**change the file** `auto_log.h` from `<build_root>/third-party/extern_autolog-src/auto_log/autolog.h`
+**add include `#include <numeric>` to the file** `auto_log.h` from `<build_root>/third-party/extern_autolog-src/auto_log/autolog.h`
 
 2. Encountered the error `[ONNXRuntimeError] : 2 : INVALID_ARGUMENT : Failed to load model with error: /onnxruntime_src/onnxruntime/core/graph/model.cc:180 onnxruntime::Model::Model(onnx::ModelProto&&, const onnxruntime::PathString&, const onnxruntime::IOnnxRuntimeOpSchemaRegistryList*, const onnxruntime::logging::Logger&, const onnxruntime::ModelOptions&) Unsupported model IR version: 11, max supported IR version: 10
    `
