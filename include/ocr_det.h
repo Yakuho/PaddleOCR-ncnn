@@ -29,8 +29,8 @@ namespace PaddleOCR {
                             const int &cpu_math_library_num_threads,
                             const bool &use_mkldnn, const std::string &limit_type,
                             const int &limit_side_len, const double &det_db_thresh,
-                            const float &det_db_box_thresh,
-                            const float &det_db_unclip_ratio,
+                            const double &det_db_box_thresh,
+                            const double &det_db_unclip_ratio,
                             const std::string &det_db_score_mode,
                             const bool &use_dilation, const bool &use_tensorrt,
                             const std::string &precision) noexcept {
@@ -120,8 +120,8 @@ namespace PaddleOCR {
         int limit_side_len_ = 960;
 
         double det_db_thresh_ = 0.3;
-        float det_db_box_thresh_ = 0.5;
-        float det_db_unclip_ratio_ = 2.0;
+        double det_db_box_thresh_ = 0.5;
+        double det_db_unclip_ratio_ = 2.0;
         std::string det_db_score_mode_ = "slow";
         bool use_dilation_ = false;
 
