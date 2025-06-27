@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
-project(ppocr)
+project(ppocr VERSION 3.0.1)
 
-set(VERSION_ 3.0.1)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "Default installation path" FORCE)
 
 find_package(yaml-cpp REQUIRED)
@@ -35,15 +34,15 @@ target_include_directories(${PROJECT_NAME}
 
 install(TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    INCLUDES include
+    RUNTIME  DESTINATION bin
+    LIBRARY  DESTINATION lib
+    ARCHIVE  DESTINATION lib
+    INCLUDES DESTINATION include
 )
 
 install(
     DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-    DESTINATION include
+    DESTINATION include/include
     FILES_MATCHING PATTERN "*.h"
 )
 
@@ -51,7 +50,7 @@ include(CMakePackageConfigHelpers)
 
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-    VERSION ${VERSION_}
+    VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
