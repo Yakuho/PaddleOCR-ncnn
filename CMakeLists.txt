@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(ppocr VERSION 3.0.1)
 
+option(BUILD_SHARED_LIBS "Build shared libraries instead of static ones" ON)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install CACHE PATH "Default installation path" FORCE)
 
 find_package(yaml-cpp REQUIRED)
@@ -15,7 +16,7 @@ include_directories(${FETCHCONTENT_BASE_DIR}/extern_autolog-src)
 
 file(GLOB_RECURSE PPOCR_SOURCES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
-add_library(${PROJECT_NAME} SHARED ${PPOCR_SOURCES})
+add_library(${PROJECT_NAME} ${PPOCR_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
