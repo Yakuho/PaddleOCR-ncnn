@@ -18,6 +18,75 @@
 #include <numeric>
 
 namespace PaddleOCR {
+    CRNNRecognizer::CRNNRecognizer(const std::string &model_dir, const bool &use_gpu,
+                                   const int &gpu_id, const int &gpu_mem,
+                                   const int &cpu_math_library_num_threads,
+                                   const bool &use_mkldnn, const std::string &label_path,
+                                   const bool &use_tensorrt,
+                                   const std::string &precision,
+                                   const int &rec_batch_num, const int &rec_img_h,
+                                   const int &rec_img_w) noexcept {
+        this->use_gpu_ = use_gpu;
+        this->gpu_id_ = gpu_id;
+        this->gpu_mem_ = gpu_mem;
+        this->cpu_math_library_num_threads_ = cpu_math_library_num_threads;
+        this->use_mkldnn_ = use_mkldnn;
+        this->use_tensorrt_ = use_tensorrt;
+        this->precision_ = precision;
+        this->rec_batch_num_ = rec_batch_num;
+        this->rec_img_h_ = rec_img_h;
+        this->rec_img_w_ = rec_img_w;
+        this->rec_image_shape_ = {3, rec_img_h, rec_img_w};
+
+        std::string new_label_path = label_path;
+        std::string yaml_file_path = model_dir + "/inference.yml";
+        if (std::ifstream yaml_file(yaml_file_path); yaml_file.is_open()) {
+            std::vector<std::string> rec_char_list;
+            try {
+                // std::string model_name;
+                YAML::Node config = YAML::LoadFile(yaml_file_path);
+                // if (config["Global"] && config["Global"]["model_name"]) {
+                //     model_name = config["Global"]["model_name"].as<std::string>();
+                // }
+                // if (!model_name.empty() && model_name != "PP-OCRv5_mobile_rec" &&
+                //     model_name != "PP-OCRv5_server_rec") {
+                //     std::cerr << "Error: " << model_name << " is currently not supported."
+                //             << std::endl;
+                //     std::exit(EXIT_FAILURE);
+                // }
+                if (config["PreProcess"] && config["PreProcess"]["RecResizeImg"] &&
+                    config["PreProcess"]["RecResizeImg"]["image_shape"]) {
+                    const auto image_shape = config["PreProcess"]["RecResizeImg"]["image_shape"];
+                    this->rec_image_shape_ = image_shape.as<std::vector<int> >();
+                    this->rec_img_h_ = this->rec_image_shape_[1];
+                    this->rec_img_w_ = this->rec_image_shape_[2];
+                }
+                if (config["PostProcess"] && config["PostProcess"]["character_dict"]) {
+                    rec_char_list = config["PostProcess"]["character_dict"]
+                            .as<std::vector<std::string> >();
+                }
+            } catch (const YAML::Exception &e) {
+                std::cerr << "Failed to load YAML file: " << e.what() << std::endl;
+            }
+            if (label_path == "../../ppocr/utils/ppocr_keys_v1.txt" &&
+                !rec_char_list.empty()) {
+                std::string new_rec_char_dict_path = model_dir + "/ppocr_keys_v1.txt";
+                if (std::ofstream new_file(new_rec_char_dict_path); new_file.is_open()) {
+                    for (const auto &character: rec_char_list) {
+                        new_file << character << '\n';
+                    }
+                    new_label_path = new_rec_char_dict_path;
+                }
+            }
+        }
+
+        this->label_list_ = Utility::ReadDict(new_label_path);
+        this->label_list_.emplace(this->label_list_.begin(), "#"); // blank char for ctc
+        this->label_list_.emplace_back(" ");
+
+        LoadModel(model_dir);
+    }
+
     void CRNNRecognizer::LoadModel(const std::string &model_dir) noexcept {
         // TODO: Setting some FLAGS like vulkan, etc. instand
         // paddle_infer::Config config;

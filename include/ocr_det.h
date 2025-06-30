@@ -24,6 +24,7 @@
 namespace PaddleOCR {
     class DBDetector {
     public:
+        // Init DBDetector Configuration
         explicit DBDetector(const std::string &model_dir, const bool &use_gpu,
                             const int &gpu_id, const int &gpu_mem,
                             const int &cpu_math_library_num_threads,
@@ -33,71 +34,7 @@ namespace PaddleOCR {
                             const double &det_db_unclip_ratio,
                             const std::string &det_db_score_mode,
                             const bool &use_dilation, const bool &use_tensorrt,
-                            const std::string &precision) noexcept {
-            this->use_gpu_ = use_gpu;
-            this->gpu_id_ = gpu_id;
-            this->gpu_mem_ = gpu_mem;
-            this->cpu_math_library_num_threads_ = cpu_math_library_num_threads;
-            this->use_mkldnn_ = use_mkldnn;
-
-            this->limit_type_ = limit_type;
-            this->limit_side_len_ = limit_side_len;
-
-            this->det_db_thresh_ = det_db_thresh;
-            this->det_db_box_thresh_ = det_db_box_thresh;
-            this->det_db_unclip_ratio_ = det_db_unclip_ratio;
-            this->det_db_score_mode_ = det_db_score_mode;
-            this->use_dilation_ = use_dilation;
-
-            this->use_tensorrt_ = use_tensorrt;
-            this->precision_ = precision;
-
-            std::string yaml_file_path = model_dir + "/inference.yml";
-            if (std::ifstream yaml_file(yaml_file_path); yaml_file.is_open()) {
-                try {
-                    // std::string model_name;
-                    YAML::Node config = YAML::LoadFile(yaml_file_path);
-                    // if (config["Global"] && config["Global"]["model_name"]) {
-                    //     model_name = config["Global"]["model_name"].as<std::string>();
-                    // }
-                    // if (!model_name.empty() && model_name != "PP-OCRv5_mobile_det" &&
-                    //     model_name != "PP-OCRv5_server_det") {
-                    //     std::cerr << "Error: " << model_name << " is currently not supported."
-                    //               << std::endl;
-                    //     std::exit(EXIT_FAILURE);
-                    //     }
-                    if (config["PreProcess"]) {
-                        const auto PreProcess = config["PreProcess"];
-                        if (PreProcess["DetResizeForTest"] && PreProcess["DetResizeForTest"]["resize_long"])
-                            this->limit_side_len_ = PreProcess["DetResizeForTest"]["resize_long"].as<int>();
-                        if (PreProcess["NormalizeImage"]) {
-                            if (PreProcess["NormalizeImage"]["mean"]) {
-                                const auto mean = PreProcess["NormalizeImage"]["mean"];
-                                for (std::size_t i = 0; i < 3; ++i)
-                                    this->mean_[i] = mean[i].as<float>() * 255.0f;
-                            }
-                            if (PreProcess["NormalizeImage"]["std"]) {
-                                const auto std = PreProcess["NormalizeImage"]["std"];
-                                for (std::size_t i = 0; i < 3; ++i)
-                                    this->scale_[i] = 1 / std[i].as<float>() / 255.0f;
-                            }
-                        }
-                    }
-                    if (config["PostProcess"]) {
-                        if (config["PostProcess"]["thresh"])
-                            this->det_db_thresh_ = config["PostProcess"]["thresh"].as<double>() * 255;
-                        if (config["PostProcess"]["box_thresh"])
-                            this->det_db_box_thresh_ = config["PostProcess"]["box_thresh"].as<float>();
-                        if (config["PostProcess"]["unclip_ratio"])
-                            this->det_db_unclip_ratio_ = config["PostProcess"]["unclip_ratio"].as<float>();
-                    }
-                } catch (const YAML::Exception &e) {
-                    std::cerr << "Failed to load YAML file: " << e.what() << std::endl;
-                }
-            }
-
-            LoadModel(model_dir);
-        }
+                            const std::string &precision) noexcept;
 
         // Load Paddle inference model
         void LoadModel(const std::string &model_dir) noexcept;

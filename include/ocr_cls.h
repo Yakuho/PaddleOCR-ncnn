@@ -24,72 +24,22 @@
 namespace PaddleOCR {
     class Classifier {
     public:
+        // Init Classifier Configuration
         explicit Classifier(const std::string &model_dir, const bool &use_gpu,
                             const int &gpu_id, const int &gpu_mem,
                             const int &cpu_math_library_num_threads,
                             const bool &use_mkldnn, const double &cls_thresh,
                             const bool &use_tensorrt, const std::string &precision,
-                            const int &cls_batch_num) noexcept {
-            this->use_gpu_ = use_gpu;
-            this->gpu_id_ = gpu_id;
-            this->gpu_mem_ = gpu_mem;
-            this->cpu_math_library_num_threads_ = cpu_math_library_num_threads;
-            this->use_mkldnn_ = use_mkldnn;
-
-            this->cls_thresh = cls_thresh;
-            this->use_tensorrt_ = use_tensorrt;
-            this->precision_ = precision;
-            this->cls_batch_num_ = cls_batch_num;
-
-            std::string yaml_file_path = model_dir + "/inference.yml";
-            if (std::ifstream yaml_file(yaml_file_path); yaml_file.is_open()) {
-                try {
-                    std::string model_name;
-                    YAML::Node config = YAML::LoadFile(yaml_file_path);
-                    // if (config["Global"] && config["Global"]["model_name"]) {
-                    //     model_name = config["Global"]["model_name"].as<std::string>();
-                    // }
-                    // if (!model_name.empty() &&
-                    //     model_name != "PP-LCNet_x0_25_textline_ori" &&
-                    //     model_name != "PP-LCNet_x1_0_textline_ori") {
-                    //     std::cerr << "Error: " << model_name << " is currently not supported."
-                    //             << std::endl;
-                    //     std::exit(EXIT_FAILURE);
-                    // }
-                    if (config["PreProcess"] && config["PreProcess"]["transform_ops"]) {
-                        const auto transform_ops = config["PreProcess"]["transform_ops"];
-                        if (transform_ops["ResizeImage"] && transform_ops["ResizeImage"]["size"]) {
-                            const auto size = transform_ops["ResizeImage"]["size"];
-                            this->cls_image_shape_[2] = size[0].as<int>();
-                            this->cls_image_shape_[1] = size[1].as<int>();
-                        }
-                        if (transform_ops["NormalizeImage"] && transform_ops["NormalizeImage"]["mean"]) {
-                            const auto mean = transform_ops["NormalizeImage"]["mean"];
-                            for (int i = 0; i < 3; i++)
-                                this->mean_[i] = mean[i].as<float>() * 255;
-                        }
-                        if (transform_ops["NormalizeImage"] && transform_ops["NormalizeImage"]["scale"]) {
-                            const auto scale = transform_ops["NormalizeImage"]["scale"];
-                            for (int i = 0; i < 3; i++)
-                                this->scale_[i] = 1 / scale[i].as<float>() / 255;
-                        }
-                    }
-                } catch (const YAML::Exception &e) {
-                    std::cerr << "Failed to load YAML file: " << e.what() << std::endl;
-                }
-            }
-
-            LoadModel(model_dir);
-        }
-
-        double cls_thresh = 0.9;
+                            const int &cls_batch_num) noexcept;
 
         // Load Paddle inference model
         void LoadModel(const std::string &model_dir) noexcept;
 
+        // Run predictor
         void Run(const std::vector<cv::Mat> &img_list, std::vector<int> &cls_labels,
                  std::vector<float> &cls_scores, std::vector<double> &times) noexcept;
 
+        double cls_thresh = 0.9;
     private:
         ncnn::Net predictor_;
 
